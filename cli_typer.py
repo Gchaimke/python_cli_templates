@@ -1,5 +1,6 @@
 
 from datetime import datetime
+import time
 from tkinter.font import names
 from typing import List
 
@@ -7,7 +8,8 @@ import click
 import typer
 
 app = typer.Typer()
-cities = ["TelAviv","Reeshon","Holon","BatYam"]
+cities = ["TelAviv", "Reeshon", "Holon", "BatYam"]
+
 
 class User:
     __slots__ = ["name", "birthday", "city", "date"]
@@ -23,11 +25,12 @@ class User:
         return f"Hello {self.name} from {self.city}.\nYour birthday is: {self.birthday}.\nYou start wotking at: {self.date}\n"
 
 
-def complete_city(ctx:typer.Context, incomplete: str):
+def complete_city(ctx: typer.Context, incomplete: str):
     citys = ctx.params.get("city") or []
     for city in cities:
         if city.startswith(incomplete) and city not in citys:
             yield(city)
+
 
 def validate_date(ctx, param, value):
     try:
@@ -41,27 +44,36 @@ def validate_date(ctx, param, value):
     except ValueError:
         raise click.BadParameter("Date must be in format DD.MM.YYYY")
 
+
 @app.command()
 def main(
-    name: str = typer.Option("Chaim","--name","-n", help="Your Name",
+    name: str = typer.Option("Chaim", "--name", "-n", help="Your Name",
                              prompt="Enter your name"),
     birthday: str = typer.Option(
         "10.12.1985", help="Your birthday in YYYY-MM-DD format", callback=validate_date, prompt="Enter your birthday in YYYY-MM-DD format"),
     city: List[str] = typer.Option("TelAviv", help="Your City",
-                             prompt="Enter your city",autocompletion=complete_city),
+                                   prompt="Enter your city", autocompletion=complete_city),
     start_date: str = typer.Option(
         "04.04.2022", help="The sart date", callback=validate_date, prompt="Enter your start working day"),
-    force: bool = typer.Option(..., help="Force", prompt="Force your start working day")
+    force: bool = typer.Option(..., help="Force",
+                               prompt="Force your start working day")
 ):
+    total = 0
+    file =  typer.launch("https://google.com")
+    with typer.progressbar(range(100),label="Processing") as progress:
+        for value in progress:
+            time.sleep(0.1)
+            total += 1
+    typer.echo(f"Processed {total} things")
     user = User(name=name, birthday=birthday, city=city, date=start_date)
 
-    typer.secho("""Create new user""",bg=typer.colors.BRIGHT_BLACK)
+    typer.secho("""Create new user""", bg=typer.colors.BRIGHT_BLACK)
     if force:
-        fg=typer.colors.GREEN
+        fg = typer.colors.GREEN
     else:
-        fg=typer.colors.RED
+        fg = typer.colors.RED
 
-    typer.secho(f"\n{user}",fg=fg)
+    typer.secho(f"\n{user}", fg=fg)
 
 
 if __name__ == "__main__":
